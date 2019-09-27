@@ -2,7 +2,12 @@
 	"variables": {
 	"project_id": null,
 	"machine_type": "g1-small",
-	"source_image_family":null
+	"source_image_family":null,
+	"image_description": "",
+	"disk_size": "11",
+	"disk_type": "",
+	"network_project_id": "",
+	"tags": ""
 	},
     "builders": [
         {
@@ -13,7 +18,13 @@
             "source_image_family": "{{ user `source_image_family`  }}",
             "zone": "europe-west1-b",
             "ssh_username": "appuser",
-            "machine_type": "{{ user `machine_type` }}"
+            "machine_type": "{{ user `machine_type` }}",
+	    "image_description": "{{ user `image_description` }}",
+	    "disk_size": "{{ user `disk_size` }}",
+            "disk_type": "{{ user `disk_type` }}",
+            "network_project_id": "{{ user `network_project_id` }}",
+            "tags": "{{ user `tags` }}"
+
         }
     ],
 	"provisioners": [
