@@ -1,0 +1,10 @@
+{
+	"project_id": "infra-0101001",
+	"machine_type": "f1-micro",
+	"source_image_family": "ubuntu-1604-lts",
+	"image_description": "ubuntu16 with preinst. ruby, mongodb, builder, puma server  and reddit app",
+	"disk_size": "12",
+	"disk_type": "pd-standard",
+	"network_project_id": "infra-0101001",
+	"tags": "puma-server"
+}

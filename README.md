@@ -1,22 +1,100 @@
 # Maxim-Krivobokov_infra
 
+
+##Домашнее задание к уроку 7- Learning Packer and  Google compute engine
+Что сделано:
+* создана ветка packer base 
+* создана папка packer. файлы-скрипты с предыдущего д/з перенесены в другую папку и убраны в .gitignore
+* создан packer template ubuntu16.json б который создает образ ubuntu16 с заданнымми параметрами (образ относится к моему проекту, регион west1b, тип машины, установлены ruby, bundler, и.т.д)
+* в шаблоне в разделе builders прописаны параметры образа - 
+* в секции variables определены переменные, определяющие ID проекта, семейство ОС, тип машины, описание образа, ID сети, параметры диска, и теги.
+* в шаблоне в разделе provisioners прописаны ссылки на файлы-скрипты install_ruby.sh и install_mongodb.sh, расположенные  в папке packer/scripts
+* в файле variables.json заданы значения параметров из ubuntu16.json, файл добавлен в .gitignore
+* в файле variables.json.example значения параметров project_ID и network_ID  изменены на вымышленные
+* шаблон ubuntu16.json проверен командами packer inspekt (на определенность переменных) и packer validate (на синтаксис)
+* шаблон исполнен командой 
+	```packer build -var-file variables.json ubuntu16.json
+	```
+* в разделе Google compute engine -> images появился образ ubuntu16_timestamp (кучу цифр лень переписывать)
+* на основе этого образа создана VM reddit-app
+### основная часть д/з
+* () подключились к ней по ssh, скопировали репозиторий приложения реддит, запустили bundler, запустили сервер puma 
+	``` git clone -b monolith https://github.com/express42/reddit.git
+	    cd reddit && bundle install
+	    puma -d
+	```
+* проверили процесс puma (ps aux | grep puma) заодно еще раз уточнили порт - 9292
+* проверили правило файервола в GCP для порта 9292 (осталось с пред. занятия)
+* зашли через браузер на VM : 35.189.192.207 : 9292. Приложение reddit работает. 
+
+###дополнительная часть №1 домашней работы  (В ПРОЦЕССЕ)
+* создадим шаблон immutable.json, запустив инстанс из которого, получим сразу VM с установленным и запущенным сервером Пума и реддитом
+* immutable.json отличается от предыдущего шаблона параметром 
+```
+ "image_family": "reddit-full"
+```
+* также в новый шаблон добавили ссылку на скрипт в разделе provisioners
+```
+		"type": "shell",
+		"script":  "files/deploy.sh",
+		"execute_command": "sudo {{.Path}}" 
+``
+* копируем файл deploy.sh из прошлого д/з в папку packer/files/deploy.sh
+* проверили packer validate, запустили packer build c параметрами из variables.json
+
+* запускаем VM, видим, что создана папка /home/appuser/reddit, в ней поработал bundler, но сервер puma не запущен (можно запустить руками, и "реддит" заработает)
+
+* изменим deploy.sh, добавив автозапуск приложения reddit-app через systemd unit
+* для этого создадим файл reddit-app.service, пропишем в нем параметры
+* переместим его в /etc/systemd/system
+* перезапустим сервис с помощью systemctl
+```
+	cat <<EOF > reddit-app.service
+	# In progress...
+
+	mv $reddit-app.service /etc/systemd/system/
+	
+	systemctl daemon-reload
+	systemctl enable reddit-app.service
+
+```
+
+### дополнительное задание №2 домашней работы про Packer
+* создадим скрипт config-scripts/create-reddit-vm.sh 
+* скрипт должен запускать ВМ из образа, (семейство reddit-base) подготовленного с помощью packer в этом д\з
+* работает корректно, добавлен в коммит
+```
+#запускаем инстанс из образа reddit-base
+gcloud compute instances create reddit-app \
+	--image-family reddit-base\
+	--tags puma-server\
+	--restart-on-failure
+
+#создаем правило firewall
+gcloud compute firewall-rules create default-puma-server2 \
+	--allow=tcp:9292 \
+	--target-tags="puma-server"
+
+echo "completed"
+```
+
 ##Google Cloud App Deploy
 testapp_IP = 35.187.167.214
 testapp_port = 9292
 
 Что сделал в этом Д\З:
-*установил и настроил Gcloud SDK на локальной машине
-*создал виртуальную машину reddit-app, настроил ssh соединение с ней
-*установил Ruby и Bundler
-*установил Mongo-DB, запустил и добавил в автозапуск
-*скопировал код приложения reddit с гитхаба
+* установил и настроил Gcloud SDK на локальной машине
+* создал виртуальную машину reddit-app, настроил ssh соединение с ней
+* установил Ruby и Bundler
+* установил Mongo-DB, запустил и добавил в автозапуск
+* скопировал код приложения reddit с гитхаба
 * установил зависимости с помощью bundle
-*запустил сервер Puma
-*добавил праивло в файерволе GCP для сервера Puma
-*создал скрипты install_ruby.sh install_mongodb.sh deploy.sh для автоматизации вышеупомянутых действий
+* запустил сервер Puma
+* добавил праивло в файерволе GCP для сервера Puma
+* создал скрипты install_ruby.sh install_mongodb.sh deploy.sh для автоматизации вышеупомянутых действий (объединены в total.sh)
 * проверил срипты на другом инстансе, работают корректно
-*создал файл-срипт для gcloud, который запускает инстанс, и подцепляет скрипт из файлы или url. 
-	* ОШИБКА - копирует репозиторий, а дальше выполнение под вопросом, сервер Puma не установлен. Требуется доработка
+* создал файл-срипт для gcloud, который запускает инстанс, и подцепляет скрипт из файлы или url. 
+	
 
 
 
