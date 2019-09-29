@@ -1,0 +1,9 @@
+*.tfstate
+*.tfstate.*.backup
+*.tfstate.backup
+*.tfvars
+.terraform/
+.ssh/appuser
+terraform/.ssh/*
+/packer/variables.json
+packer/variables.json
