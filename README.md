@@ -82,7 +82,7 @@ testapp_port = 9292
 		"type": "shell",
 		"script":  "files/deploy.sh",
 		"execute_command": "sudo {{.Path}}" 
-``
+```
 * копируем файл deploy.sh из прошлого д/з в папку packer/files/deploy.sh
 * проверили packer validate, запустили packer build c параметрами из variables.json
 
@@ -108,14 +108,16 @@ testapp_port = 9292
 * скрипт должен запускать ВМ из образа, (семейство reddit-base) подготовленного с помощью packer в этом д\з
 * работает корректно, добавлен в коммит
 
-#### запускаем инстанс из образа reddit-base
-gcloud compute instances create reddit-app \
+####  запускаем инстанс из образа reddit-base
+```
+$ gcloud compute instances create reddit-app \
 	--image-family reddit-base\
 	--tags puma-server\
 	--restart-on-failure
-
+```
 #### создаем правило firewall
-gcloud compute firewall-rules create default-puma-server2 \
+```
+$ gcloud compute firewall-rules create default-puma-server2 \
 	--allow=tcp:9292 \
 	--target-tags="puma-server"
 
@@ -207,7 +209,111 @@ variable zone_d {
 
 ### задание со * - to be continued ...
 
+## Домашнее задание к уроку №9 - Принципы организации структурного кода и работа над инфраструктурой в команде на примере Terraform
 
+Что сделано:
+* создал ветку terraform-2, работаем в ней, скопировав все материалы из прошлой работы
+* добавил в main.tf ресурс "firewall-ssh"
+* импортировал правило файервола в структуру Terraform, используя команду terraform import
+```
+ terraform import google_compute_firewall.firewall_ssh default-allow-ssh
+ terraform apply
+```
+* прописал IP адрес, как внешний ресурс, добавил в main.tf
+``` 
+ resource "google_compute_address" "app_ip" {
+ name = "reddit-app-ip" }
+```
+* добавил ссылку на атрибуты  ресурса IP внутри конфигурации ресурса VM
+```
+ network_interface {
+  network = "default"
+  access_config = {
+    nat_ip = google_compute_address.app_ip.address }
+```
+##### используем структуризацию ресурсов #####
+* провел структуризацию ресурсов - вынес БД MongoDB на отдельную ВМ, и Ruby на другую ВМ
+* для этого созданы packer - шаблоны app.json и db.json
+* app.json создает образ с именем reddit-rubyapp, db.json => reddit.db
+* создал два конфиг файла - app.tf db.tf, в них описаны параметры для настройки двух ВМ
+* правило файервола ssh вынес в отдельный файл vpc.tf
+```
+resource "google_compute_firewall" "firewall_ssh" {
+  name    = "default-allow-ssh"
+  network = "default"
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+  source_ranges = [0.0.0.0/0]
+}
+```
+* в файле main.tf остались лишь записи о версии провайдера google
 
+##### использованиек модулей #####
 
+* создал директории modules/db и modules/app в рабочей папке terraform
+* в них создал конфиг. файлы  для каждого модуля: variables.tf , outputs.tf , main.tf
+* определил переменные в variables.tf
+* удалил из основной директории app.tf db.tf
+* в ./main.tf прописал секции вызова модулей
+```
+module "app" {
+  source          = "../modules/app"
+  public_key_path = var.public_key_path
+  zone            = var.zone
+  app_disk_image  = var.app_disk_image
+}
+
+module "db" {
+  source          = "../modules/db"
+  public_key_path = var.public_key_path
+  zone            = var.zone
+  db_disk_image   = var.db_disk_image
+}
+```
+* загрузил модули командой terraform get
+* для устранения ошибки, переопределим выходную переменную в ./outputs.tf
+```
+output "app_external_ip" {
+  value = module.app.app_external_ip
+}
+```
+* создал модуль VPC , расположен ./modules/vpc, прописал конфиг. файл
+* прописал его вызов в ./main.tf , удалил ./vpc.tf в основной директории
+* проверил работоспособность
+```
+terraform get
+terraform plan
+terraform apply
+```
+##### параметризация модулей с использованием input переменных  #####
+* в файле конфигурации фаервола ssh : ./modules/vpc/main.tf укажем диапазон адресов в виде переменной
+````
+ source_ranges = var.source.ranges
+````
+* определил переменную в variables.tf данного модуля, указал значение по умолчанию
+* определил значение переменной в вызове модуля из основного файла main.tf
+* указал IP адрес своей локальной машины - доступ по SSH к ВМ есть
+* указал иной адрес- в результате ВМ недоступна
+* вернул значение 0.0.0.0/0
+
+##### переиспользование модулей  #####
+* создал инфраструктуру для двух окружений (stage и prod)
+* в двух директориях ./stage и ./prod находятся конфиг. файлы из основной папки
+* для обоих директорий в main.tf исправлены ссылки на модули app , db, vpc
+* различия окружений - для stage  прописано правило доступа по SSH для всех адресов, для prod - только один
+* из основной директории за ненадобностью удалены все .tf файлы
+
+##### использование стороннего модуля storage-bucket #####
+* прописан вызов модуля в отдельном файле storage-bucket.tf
+* в нем прописана output переменная 
+````
+output storage-bucket_url {
+  value = module.storage-bucket.url
+}
+````
+* пропишем значения проекта и региона в variables.tf и terraform.tfvars
+
+Результат - при применении изменений создается бакет с указанным именем (storage-bucket-i253210)
 

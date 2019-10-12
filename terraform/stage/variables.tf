@@ -1,5 +1,14 @@
+variable db_disk_image {
+  description = "Disk image for reddit db"
+  default     = "reddit-db"
+}
+variable app_disk_image {
+  description = "Disk image for reddit app"
+  default     = "reddit-rubyapp"
+}
 variable project {
   description = "Project ID"
+  default     = "infra-253210"
 }
 variable region {
   description = "Region"
@@ -18,6 +27,11 @@ variable private_key_path {
 }
 variable zone_d {
   description = "zone of VM dislocaton"
-  default     = "europe-east1-a"
+  default     = "europe-west1-d"
 }
+variable zone {
+  description = "zone of VM dislocaton2"
+  default     = "europe-west1-d"
+}
+
 
