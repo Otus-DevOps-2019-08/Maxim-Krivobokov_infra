@@ -1,0 +1,6 @@
+[app]  # сие есть название группы
+appserver ansible_host=34.77.86.136 # list of hosts of this group
+
+[db]
+dbserver ansible_host=104.199.84.30
+

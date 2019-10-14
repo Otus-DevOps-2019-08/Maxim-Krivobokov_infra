@@ -7,3 +7,7 @@
 terraform/.ssh/*
 /packer/variables.json
 packer/variables.json
+terraform2/*
+terraforms/outputs.tf.save
+terraform/stage/.terraform.tfstate.local.info
+

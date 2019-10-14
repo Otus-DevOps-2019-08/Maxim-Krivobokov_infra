@@ -317,3 +317,65 @@ output storage-bucket_url {
 
 Результат - при применении изменений создается бакет с указанным именем (storage-bucket-i253210)
 
+
+
+## Домашняя работа к уроку №10 - знакомство с Ansible
+
+Что проделано: 
+* создали ветку репозитория ansible-1, и директорию ansible
+* установили Ansible в одноименную папку через  покетный менеджер pip
+* создали  файл inventory ,  в нем прописали, какими хостами будет управлять Ansible (appserver и dbserver из предыдущих работ),параметры ssh подключения
+
+* проверили подкелючение черезь модуль ping
+````
+ansible appserver -i ./inventory -m ping
+````
+* прописали параметры по умолчанию в ansible.cfg (ссылку на файл inventory, remote-user, путь к ключу для ssh, и пр.). Удалили лишнее из inventory
+
+* прописали инвентори файл в формате yml - inventory.yml
+#### Использование модулей в Ansible
+
+* используем модуль command для запуска произвольной команды (вывод времени работы системы) на удаленном хосте
+````
+ansible dbserver -m command -a uptime
+````
+* прописали группы хостов в инвентори файле: [app] и [db], теперь можно вызывать модуль для группы
+
+* проверяем наличие нужного ПО на VM с использованием модулей command и shell:
+````
+ansible app -m command -a 'ruby -v; bundler -v'
+ansible app -m shell -a 'ruby -v bundler -v'
+````
+* различие модулей - shell подходит для выполнения более сложных скриптов, состоящих из нескольких командр и с использованием переменных окружения
+* модуль command подходит для выполнения одной команды
+* используем модуль systemd, service или shell для проверки статуса MongoDB
+````
+ansible db -m systemd -a name=mongod
+ansible service -a name=mongod
+ansible db -m shell -a 'systemctl status mongod'
+````
+
+* используем модуль git для клонирования репозитория с приложением reddit
+````
+ansible app -m git -a 'repo=https://github.com/express42/reddit.git dest=/home/appuser/reddit'
+````
+* проверяем идемпотентность этой команды в сравнении с выполнением той же операции через модуль command или shell. Последние выдают ошибку при повторном запуске
+
+
+#### создание простого плейбука
+* создали файл clone.yml , который копирует репозиторий через git
+````
+---
+- name: Clone
+  hosts: app
+  tasks:
+    - name: Clone repo
+      git:
+        repo: https://github.com/express42/reddit.git
+        dest: /home/appuser/reddit
+
+````
+* проверяем его работу с помощью команды ansible-playbook , смотрим на различия в выводе при первичном / повторном запуске
+
+
+#### дополнительное задание - в процессе.
