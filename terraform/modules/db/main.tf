@@ -8,8 +8,8 @@ resource "google_compute_instance" "db" {
   }
   network_interface {
     network = "default"
-    access_config { 
-        }
+    access_config {
+	  }
   }
   metadata = {
     ssh-keys = "appuser:${file(var.public_key_path)}"
