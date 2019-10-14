@@ -25,13 +25,8 @@ variable disk_image {
 variable private_key_path {
   description = "Path to the private key for SSH for user appuser"
 }
-variable zone_d {
-  description = "zone of VM dislocaton"
-  default     = "europe-west1-d"
-}
 variable zone {
   description = "zone of VM dislocaton2"
   default     = "europe-west1-d"
 }
-
 
