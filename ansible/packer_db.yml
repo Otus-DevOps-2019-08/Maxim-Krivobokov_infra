@@ -1,4 +1,3 @@
----
 - name: Install MongoDB 3.2
   hosts: all
   become: true
@@ -26,4 +25,3 @@
     systemd:
       name: mongod
       enabled: yes
-      
