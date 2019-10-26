@@ -1,0 +1,16 @@
+- name: Configure MongoDb #
+  hosts: db
+  become: true
+  vars:
+     mongo_bind_ip: 0.0.0.0 #variables are to be set here
+  tasks: 
+   - name: Change mongo config file
+     template:
+       src: templates/mongod.conf.j2 #path to local template-file
+       dest: /etc/mongod.conf # path on remote host
+       mode: 0644 # rights on file to be set
+     notify: restart mongod   #calling handler named 'restart mongod'
+
+  handlers:
+   - name: restart mongod
+     service: name=mongod state=restarted
