@@ -1,0 +1,11 @@
+---
+- name: Configure app
+  hosts: app
+  become: true
+
+  #vars:  #moved to environments/stage/group_vars/app
+  # db_host: 10.132.15.215
+
+  roles:
+    - app
+    - jdauphant.nginx

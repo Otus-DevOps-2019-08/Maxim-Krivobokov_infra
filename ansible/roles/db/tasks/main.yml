@@ -1,0 +1,11 @@
+---
+# tasks file for db
+   - name: Change mongo config file
+     template:
+       src: mongod.conf.j2 #we don't need path to file, just name
+       dest: /etc/mongod.conf # path on remote host
+       mode: 0644 # rights on file to be set
+     notify: restart mongod   #calling handler named 'restart mongod'
+
+   - name: Show info about the env this host belongs to
+     debug: msg= "This host is in {{ env }} environment." 
