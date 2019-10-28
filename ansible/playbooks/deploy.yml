@@ -10,7 +10,7 @@
        version: monolith # указываем нужную ветку
     notify: reload puma
 
-  - name: Bundle install 
+  - name: Bundle install
     bundler:
       state: present
       chdir: /home/appuser/reddit  #в какой директории выполнить команду bundle 
