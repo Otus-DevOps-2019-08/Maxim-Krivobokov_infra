@@ -446,3 +446,138 @@ ansible-playbook reddit-app.yml --check
 * запустили инфраструктуру на базе новых образов, прогнали плейбук - все работает. 
 
 #### дополнительное задание - dynamic inventory - в процессе 
+
+
+## Домашнее задание к уроку 12 - Ansible 3
+
+ЧТо сделано: 
+
+* создана ветка ansible-3
+* создали структуру роли, в директории ansible/roles
+
+```` 
+ansible-galaxy init app
+ansible-galaxy init db
+````
+
+* в итоге созданы роли db (настройка сервера mongoDB) и app (настройка сервера приложения)
+* перенесли секции tasks из плейбуков db.yml, app.yml в roles/<rolename>/tasks/main.yml
+
+* перенесли соотвествующие шаблоны  из  ansible/templates в ansible/roles/<rolename>/templates
+
+* определили используемые хендлеры в ansible/roles/<rolename>/handlers/main.yml
+
+* определили переменные (db_host , mongo_port, mongo_bind_ip) в ansible/roles/<rolename>/defaults/main.yml
+
+* перенесли из папки ansible/files файл puma.service в ansible/roles/app/files
+
+* в плейбуках ansible/app.yml и ansible/db.yml оставим только вызовы ролей, таски и хендлеры удалили. 
+
+* проверили работу плейбуков, все работает, реддит на app-server-е запускается
+````
+ansible-playbook site.yml (--check)
+````
+* создали директории окружений - environments/stage и environments/prod
+
+* создали инвентори файлы для каждого окружения, в корневой папке invbentory удалили
+
+* прописали в ansible.cfg окружение по умолчанию - stage
+
+* создали директорию group_vars  в обоих окружениях, для определения переменных групп хостов
+
+* в папках group_vars создадим файлы app и db, в них определим переменные db_host, mongo_bind_ip, эти переменнные из плейбуков ansible/app.yml и db.yml  удалены
+
+* в group_vars окружения stage и prod создал файл all - переменные для всех хостов, указанных в инвентори. Пропишем в нем окружение:
+````
+env: stage  # prod в папке prod
+````
+
+* для вывода информации об окружении прописали переменную env в файлах ansible/roles/<rolename>/defaults/main.yml
+````
+env: local
+````
+
+* добавили таск  в роли app и db: ansible/roles/<rolename>/tasks/main.yml
+````
+- name: Show info about the env this host belongs to
+debug:
+msg: "This host is in {{ env }} environment."
+````
+
+* привел в порядок корневую папку ansible - плейбуки перенес в /playbooks, все остальное из предыдущих д/з в /old. В папке остались ansible.cfg & requirements.txt
+
+* добавили  в ansible.cfg вывод изменений, и прописали папку ролей
+````
+[defaults]
+...
+roles_path = ./roles
+[diff]
+always = True
+context = 5
+````
+
+* запустили плейбук site.yml в stage и prod окружении, все работает
+
+#### Community роли
+
+* скачал роль jdauphant.nginx (j.n.) с помощью ansible-galaxy
+
+* создал для этого файлы environments/<env_name>/requirements.yml
+````
+-src jdauphant.nginx
+version v2.21.1
+````
+* добавил файлы этой роли в .gitignore
+
+* добавил необходимые переменные в <env_name>/group_vars/app
+````
+ nginx_sites:
+   default:
+     - listen 80
+     - server_name "reddit"
+     - location / {
+         proxy_pass http://127.0.0.1:9292;
+       }
+````
+
+* прописал вызов роли j.n. в плейбук app.yml
+
+* прописал в терраформ новое правило файервола - открытый порт 80 для тега reddit-app. Любопытно,что по умолчанию в GCP общее правило открытого порта 80 для всего диапазона адресов было, но с ним reddit на этом порту не работал. А после добавления правила через terraform - все заработало. Дело в теге? 
+
+* применил плейбук site.yml, проверил доступность реддита на 80 порту
+
+# использование ansible vault
+
+* изучил работу с приватными данными
+
+* создал файлм vault.key (прописан в .gitignore) с произвольной строкой
+
+* добавил в ansible.cfg опцию
+````
+[defaults]
+...
+vault_password_file = vault.key
+````
+* создал плейбук playbooks/users.yml - создает пользователей, работает для всех хостов
+
+* создал файлы ansible/environments/<env_name>/credentials.yml для обоих окружений
+
+* в них прописал имена пользователей (admin, qauser) и тестовые пароли, очень взломостойкие (qWeRtY123)
+
+* зашифровал файлы credentials с использованием vault.key
+````
+ansible-vault encrypt environments/prod/credentials.yml
+ansible-vault encrypt environments/stage/credentials.yml
+````
+
+* добавил вызов плейбука users.yml в site.yml, проверил и запустил его
+
+* заходим по ssh на серверы, проверяем командой su admin / su qauser - пользователи с заданными паролями имеются
+
+* провалив много раз подряд тесты TravisCI, утсановил ansible-lint
+
+* с помощью ansible-lint нашел каждый trailing whitespace в каждом файле, устранил. Тест прошел) 
+
+### Динамическое инвентори - в процессе
+
+### Настройка Travis CI - в процессе
