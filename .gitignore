@@ -15,4 +15,12 @@ jdauphant.nginx
 /ansible/vault.key
 /packer/app_old.json
 /packer/db_old.json
-
+# vagrant & molecule
+.vagrant/
+*.log
+*.pyc
+.molecule
+.cache
+.pytest_cache
+/ansible/.vscode/
+/venv2/
