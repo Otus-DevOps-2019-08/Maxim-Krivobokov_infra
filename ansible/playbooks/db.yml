@@ -1,0 +1,9 @@
+- name: Configure MongoDb #
+  hosts: db
+  become: true
+
+  #vars:   #moved to environments/stage/group_vars/db
+  #   mongo_bind_ip: 0.0.0.0 #variables are to be set here
+
+  roles:
+    - db

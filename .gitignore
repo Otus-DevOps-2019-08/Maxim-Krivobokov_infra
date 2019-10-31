@@ -11,3 +11,8 @@ terraform2/*
 terraforms/outputs.tf.save
 terraform/stage/.terraform.tfstate.local.info
 *.retry
+jdauphant.nginx
+/ansible/vault.key
+/packer/app_old.json
+/packer/db_old.json
+
