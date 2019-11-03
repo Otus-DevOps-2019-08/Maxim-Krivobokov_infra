@@ -24,3 +24,4 @@ jdauphant.nginx
 .pytest_cache
 /ansible/.vscode/
 /venv2/
+.vscode/
