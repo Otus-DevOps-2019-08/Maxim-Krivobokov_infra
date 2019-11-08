@@ -447,7 +447,9 @@ ansible-playbook reddit-app.yml --check
 
 #### дополнительное задание - dynamic inventory - в процессе 
 
-## Домашнее задание №11 - Ansible 3
+
+
+## Домашнее задание #11 - Ansible 3
 
 ЧТо сделано: 
 
@@ -580,6 +582,7 @@ ansible-vault encrypt environments/stage/credentials.yml
 ### Динамическое инвентори - в процессе
 
 ### Настройка Travis CI - в процессе
+
 
 
 ## Домашнее задание № 12 - Ansible 4
@@ -963,4 +966,5 @@ molecule verify
             
 ````
   * файл packer/db.json меняем схожим образом, указав тег db_install_mongodb
+
 
