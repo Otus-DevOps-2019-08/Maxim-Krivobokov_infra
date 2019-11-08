@@ -13,7 +13,7 @@
         {
             "type": "googlecompute",
             "project_id": "{{ user `project_id` }}",
-            "image_name": "reddit-rubyapp",
+            "image_name": "reddit-app",
             "image_family": "reddit-base",
             "source_image_family": "{{ user `source_image_family`  }}",
             "zone": "europe-west1-b",
@@ -30,7 +30,14 @@
 	"provisioners": [
         {
             "type": "ansible",
-            "playbook_file": "ansible/playbooks/packer_app.yml"
+            "playbook_file": "ansible/playbooks/packer_app.yml",
+            "ansible_env_vars": [
+                "ANSIBLE_ROLES_PATH=./ansible/roles"
+            ],
+            "extra_arguments": [
+                "--tags",
+                "app-ruby"
+            ]
             
         }
       
